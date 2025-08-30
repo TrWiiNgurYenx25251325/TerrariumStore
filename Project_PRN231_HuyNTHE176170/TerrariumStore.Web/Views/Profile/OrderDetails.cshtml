@@ -1,0 +1,370 @@
+@model TerrariumStore.Web.Models.Order
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "_ProfileLayout";
+    var orderId = ViewData["OrderId"];
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Chi tiết đơn hàng #<span id="orderId">@orderId</span></h2>
+                <div>
+                    <button id="showPaymentBtn" class="btn btn-success me-2" style="display: none;">
+                        <i class="fas fa-qrcode me-2"></i> Thanh toán
+                    </button>
+                    <a href="/Profile/Orders" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i> Quay lại danh sách
+                    </a>
+                </div>
+            </div>
+            
+            <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+            
+            <!-- Hiển thị trạng thái loading -->
+            <div class="text-center py-5" id="loadingOrder">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <p class="mt-2">Đang tải thông tin đơn hàng...</p>
+            </div>
+            
+            <div id="orderDetails" style="display: none;">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Thông tin đơn hàng</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Mã đơn hàng:</strong> #<span id="orderIdDetail"></span></p>
+                                <p><strong>Ngày đặt hàng:</strong> <span id="orderDate"></span></p>
+                                <p>
+                                    <strong>Trạng thái:</strong>
+                                    <span id="orderStatus"></span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Người nhận:</strong> <span id="recipientName"></span></p>
+                                <p><strong>Số điện thoại:</strong> <span id="recipientPhone"></span></p>
+                                <p><strong>Địa chỉ giao hàng:</strong> <span id="shippingAddress"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Chi tiết sản phẩm</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>Đơn giá</th>
+                                        <th>Số lượng</th>
+                                        <th class="text-end">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orderItems">
+                                    <!-- Danh sách sản phẩm sẽ được thêm vào đây bằng JavaScript -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="fw-bold">
+                                        <td colspan="3" class="text-end">Tổng cộng:</td>
+                                        <td class="text-end" id="totalPrice"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal QR Code Thanh Toán -->
+<div class="modal fade" id="paymentQRModal" tabindex="-1" aria-labelledby="paymentQRModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="paymentQRModalLabel">Quét mã QR để thanh toán</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <p>Vui lòng quét mã QR bằng ứng dụng ngân hàng hoặc ví điện tử để thanh toán</p>
+                    <p class="text-success fs-5 fw-bold">Tổng tiền: <span id="qrTotalAmount"></span></p>
+                </div>
+                <div class="qr-container p-3 border d-inline-block mb-3">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://terrarium-store.com/payment&amp;size=200x200" alt="QR Code" id="paymentQRCode" class="img-fluid">
+                </div>
+                <div class="payment-details bg-light p-3 rounded">
+                    <p class="mb-1"><strong>Ngân hàng:</strong> MB Bank</p>
+                    <p class="mb-1"><strong>Số tài khoản:</strong> 8666771508</p>
+                    <p class="mb-1"><strong>Tên:</strong> NGUYEN TRUONG HUY</p>
+                    <p class="mb-1"><strong>Nội dung CK:</strong> <span id="orderReference" class="text-danger fw-bold">TERRARIUM-<span id="orderRefNumber"></span></span></p>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-success" id="completedPaymentBtn">Đã thanh toán</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // Biến để lưu thông tin đơn hàng hiện tại
+            var currentOrder = {};
+            var paymentModal;
+            
+            // Khởi tạo modal
+            paymentModal = new bootstrap.Modal(document.getElementById('paymentQRModal'));
+            
+            // Kiểm tra xem người dùng đã đăng nhập hay chưa
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('userId');
+            
+            if (!token || !userId) {
+                window.location.href = '/Home/Login';
+                return;
+            }
+            
+            // Lấy ID đơn hàng từ URL
+            const orderId = @orderId;
+            
+            // Lấy thông tin chi tiết đơn hàng từ API
+            $.ajax({
+                url: 'https://localhost:7024/api/order/' + orderId,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function(order) {
+                    // Lưu thông tin đơn hàng hiện tại
+                    currentOrder = order;
+                    
+                    // Ẩn loading
+                    $('#loadingOrder').hide();
+                    
+                    // Hiển thị chi tiết đơn hàng
+                    $('#orderDetails').show();
+                    
+                    // Điền thông tin đơn hàng
+                    $('#orderIdDetail').text(order.id);
+                    
+                    const orderDate = new Date(order.orderDate).toLocaleDateString('vi-VN', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    $('#orderDate').text(orderDate);
+                    
+                    // Hiển thị trạng thái đơn hàng
+                    let statusBadge = '';
+                    switch (order.status) {
+                        case 'Pending':
+                            statusBadge = '<span class="badge bg-warning text-dark">Đang xử lý</span>';
+                            // Hiển thị nút thanh toán nếu trạng thái là "Đang xử lý"
+                            $('#showPaymentBtn').show();
+                            break;
+                        case 'Shipped':
+                            statusBadge = '<span class="badge bg-info">Đang giao hàng</span>';
+                            break;
+                        case 'Completed':
+                            statusBadge = '<span class="badge bg-success">Hoàn thành</span>';
+                            break;
+                        case 'Cancelled':
+                            statusBadge = '<span class="badge bg-danger">Đã hủy</span>';
+                            break;
+                        default:
+                            statusBadge = '<span class="badge bg-secondary">' + order.status + '</span>';
+                            break;
+                    }
+                    $('#orderStatus').html(statusBadge);
+                    
+                    // Thông tin người nhận
+                    $('#recipientName').text(order.recipientName || 'Không có thông tin');
+                    $('#recipientPhone').text(order.recipientPhone || 'Không có thông tin');
+                    $('#shippingAddress').text(order.shippingAddress);
+                    
+                    // Hiển thị tổng tiền
+                    const formattedTotalPrice = new Intl.NumberFormat('vi-VN').format(order.totalPrice);
+                    $('#totalPrice').text(formattedTotalPrice + ' VNĐ');
+                    
+                    // Hiển thị danh sách sản phẩm
+                    if (order.orderDetails && order.orderDetails.length > 0) {
+                        let tableRows = '';
+                        
+                        const fetchProductDetails = order.orderDetails.map(function(item) {
+                            return new Promise(function(resolve) {
+                                $.ajax({
+                                    url: 'https://localhost:7024/api/products/' + item.productId,
+                                    type: 'GET',
+                                    success: function(product) {
+                                        item.product = product;
+                                        resolve(item);
+                                    },
+                                    error: function() {
+                                        resolve(item);
+                                    }
+                                });
+                            });
+                        });
+                        
+                        Promise.all(fetchProductDetails).then(function(items) {
+                            items.forEach(function(item) {
+                                const formattedPrice = new Intl.NumberFormat('vi-VN').format(item.price);
+                                const formattedSubtotal = new Intl.NumberFormat('vi-VN').format(item.price * item.quantity);
+                                
+                                let productInfo = '';
+                                if (item.product) {
+                                    const imageUrl = item.product.imageUrl || 'https://via.placeholder.com/60';
+                                    productInfo = `
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <img src="${imageUrl}" alt="${item.product.name}" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">${item.product.name}</h6>
+                                                ${item.product.category ? `<small class="text-muted">${item.product.category.name}</small>` : ''}
+                                            </div>
+                                        </div>
+                                    `;
+                                } else {
+                                    productInfo = `<span>Sản phẩm #${item.productId}</span>`;
+                                }
+                                
+                                tableRows += `
+                                    <tr>
+                                        <td>${productInfo}</td>
+                                        <td>${formattedPrice} VNĐ</td>
+                                        <td>${item.quantity}</td>
+                                        <td class="text-end">${formattedSubtotal} VNĐ</td>
+                                    </tr>
+                                `;
+                            });
+                            
+                            $('#orderItems').html(tableRows);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    // Ẩn loading
+                    $('#loadingOrder').hide();
+                    
+                    // Hiển thị lỗi
+                    $('#errorMessage').text('Không thể tải thông tin đơn hàng. Vui lòng thử lại sau.').show();
+                    console.error('Error fetching order details:', xhr);
+                }
+            });
+            
+            // Sự kiện khi nhấn nút thanh toán
+            $('#showPaymentBtn').click(function() {
+                showPaymentQR(currentOrder);
+            });
+            
+            // Sự kiện khi nhấn nút đã thanh toán trong modal QR
+            $('#completedPaymentBtn').click(function() {
+                updateOrderStatus(currentOrder.id, 'Paid');
+            });
+        });
+        
+        function showPaymentQR(order) {
+            // Hiển thị thông tin đơn hàng trong modal QR
+            var totalAmount = order.totalPrice ? new Intl.NumberFormat('vi-VN').format(order.totalPrice) + ' VNĐ' : 'N/A';
+            var orderRef = order.id ? order.id : Math.floor(100000 + Math.random() * 900000); // Sử dụng ID đơn hàng hoặc tạo mã ngẫu nhiên
+            
+            $('#qrTotalAmount').text(totalAmount);
+            $('#orderRefNumber').text(orderRef);
+            
+            // Tạo URL thanh toán với thông tin đơn hàng
+            var paymentInfo = `Terrarium Store - Thanh toan don hang #${orderRef} - ${totalAmount}`;
+            var qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(paymentInfo)}&size=200x200`;
+            
+            // Cập nhật QR code
+            $('#paymentQRCode').attr('src', qrUrl);
+            
+            // Hiển thị modal
+            var paymentModal = new bootstrap.Modal(document.getElementById('paymentQRModal'));
+            paymentModal.show();
+        }
+        
+        function updateOrderStatus(orderId, status) {
+            const token = localStorage.getItem('token');
+            
+            $.ajax({
+                url: `https://localhost:7024/api/order/${orderId}/status`,
+                type: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(status),
+                success: function(response) {
+                    Swal.fire({
+                        title: 'Cảm ơn bạn!',
+                        text: 'Đơn hàng của bạn đã được ghi nhận thanh toán. Chúng tôi sẽ xử lý đơn hàng trong thời gian sớm nhất.',
+                        icon: 'success',
+                        confirmButtonText: 'Đóng',
+                        confirmButtonColor: '#28a745'
+                    }).then(() => {
+                        // Đóng modal thanh toán
+                        var paymentModal = bootstrap.Modal.getInstance(document.getElementById('paymentQRModal'));
+                        paymentModal.hide();
+                        
+                        // Làm mới trang để cập nhật trạng thái
+                        location.reload();
+                    });
+                },
+                error: function(xhr) {
+                    console.error('Error updating order status:', xhr);
+                    Swal.fire({
+                        title: 'Lỗi!',
+                        text: 'Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại sau.',
+                        icon: 'error',
+                        confirmButtonText: 'Đóng',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            });
+        }
+    </script>
+    
+    <style>
+        .card {
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .table td, .table th {
+            vertical-align: middle;
+        }
+        
+        .qr-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .payment-details {
+            font-size: 14px;
+            border-radius: 8px;
+        }
+        
+        #orderReference {
+            letter-spacing: 1px;
+        }
+    </style>
+} 

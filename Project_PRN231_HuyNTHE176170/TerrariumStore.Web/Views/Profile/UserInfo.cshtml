@@ -1,0 +1,154 @@
+@model TerrariumStore.Web.Models.User
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+    Layout = "_ProfileLayout";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <h2 class="text-center mb-4">Thông tin cá nhân</h2>
+            
+            <div id="successMessage" class="alert alert-success" style="display: none;"></div>
+            <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form id="userInfoForm">
+                        <input type="hidden" id="userId" />
+                        <input type="hidden" id="role" />
+                        <input type="hidden" id="username" />
+                        <input type="hidden" id="passwordHash" />
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="fullName" class="control-label">Họ và tên</label>
+                                    <input id="fullName" name="fullName" class="form-control" />
+                                    <span id="fullNameError" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="email" class="control-label">Email</label>
+                                    <input id="email" name="email" class="form-control" />
+                                    <span id="emailError" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="phone" class="control-label">Số điện thoại</label>
+                                    <input id="phone" name="phone" class="form-control" />
+                                    <span id="phoneError" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="address" class="control-label">Địa chỉ</label>
+                                    <textarea id="address" name="address" class="form-control" rows="3"></textarea>
+                                    <span id="addressError" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group text-center mt-3">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i> Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Kiểm tra xem người dùng đã đăng nhập hay chưa
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('userId');
+            
+            if (!token || !userId) {
+                window.location.href = '/Home/Login';
+                return;
+            }
+            
+            // Lấy thông tin người dùng từ API
+            $.ajax({
+                url: 'https://localhost:7024/api/user/' + userId,
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                success: function(data) {
+                    // Điền thông tin vào form
+                    $('#userId').val(data.id);
+                    $('#fullName').val(data.fullName);
+                    $('#email').val(data.email);
+                    $('#phone').val(data.phone);
+                    $('#address').val(data.address);
+                    $('#role').val(data.role);
+                    $('#username').val(data.username);
+                    $('#passwordHash').val(data.passwordHash);
+                },
+                error: function(xhr) {
+                    console.error('Error fetching user data:', xhr);
+                    $('#errorMessage').text('Không thể tải thông tin người dùng. Vui lòng thử lại sau.').show();
+                }
+            });
+            
+            // Xử lý submit form
+            $('#userInfoForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Lấy dữ liệu từ form
+                const userData = {
+                    id: $('#userId').val(),
+                    fullName: $('#fullName').val(),
+                    email: $('#email').val(),
+                    phone: $('#phone').val(),
+                    address: $('#address').val(),
+                    role: $('#role').val(),
+                    username: $('#username').val(),
+                    passwordHash: $('#passwordHash').val()
+                };
+                
+                // Gửi request cập nhật thông tin
+                $.ajax({
+                    url: 'https://localhost:7024/api/user/' + userId,
+                    type: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    data: JSON.stringify(userData),
+                    success: function(data) {
+                        $('#successMessage').text('Thông tin cá nhân đã được cập nhật thành công!').show();
+                        
+                        // Ẩn thông báo sau 3 giây
+                        setTimeout(function() {
+                            $('#successMessage').hide();
+                        }, 3000);
+                        
+                        // Cập nhật thông tin người dùng trong localStorage
+                        const user = JSON.parse(localStorage.getItem('user'));
+                        if (user) {
+                            user.fullName = userData.fullName;
+                            user.email = userData.email;
+                            localStorage.setItem('user', JSON.stringify(user));
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error updating user data:', xhr);
+                        $('#errorMessage').text('Có lỗi xảy ra khi cập nhật thông tin. Vui lòng thử lại sau.').show();
+                    }
+                });
+            });
+        });
+    </script>
+} 

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Terrarium Store</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/TerrariumStore.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        :root {
+            --primary-color: #28a745; /* Màu xanh lá cây thay cho xanh dương */
+            --primary-dark: #218838; /* Màu xanh lá đậm hơn cho hover */
+        }
+        
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark) !important;
+            border-color: var(--primary-dark) !important;
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color) !important;
+            color: #fff !important;
+        }
+        
+        .profile-sidebar {
+            border-right: 1px solid #eee;
+            height: 100%;
+        }
+        
+        .profile-sidebar .nav-link {
+            color: #495057;
+            border-radius: 0;
+            padding: 12px 15px;
+        }
+        
+        .profile-sidebar .nav-link:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .profile-sidebar .nav-link.active {
+            color: #fff;
+            background-color: var(--primary-color);
+        }
+        
+        .profile-sidebar .nav-link i {
+            width: 20px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        
+        .user-info {
+            padding: 20px 15px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+        
+        .user-info img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .user-info h5 {
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="/Home/Index">Terrarium Store</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Home/Index">Trang chủ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Product">Sản phẩm</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Home/Cart">
+                                <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle"></i> Tài khoản
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="/Profile/UserInfo">
+                                        <i class="fas fa-user me-2"></i> Thông tin cá nhân
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/Profile/Orders">
+                                        <i class="fas fa-clipboard-list me-2"></i> Đơn hàng của tôi
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" id="navLogout">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block bg-light profile-sidebar">
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/150" alt="User avatar" />
+                    <h5 id="userFullName"></h5>
+                    <p class="text-muted mb-0" id="userEmail"></p>
+                </div>
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Action"].ToString() == "UserInfo" ? "active" : "")" href="/Profile/UserInfo">
+                                <i class="fas fa-user"></i> Thông tin cá nhân
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Action"].ToString() == "Orders" || ViewContext.RouteData.Values["Action"].ToString() == "OrderDetails" ? "active" : "")" href="/Profile/Orders">
+                                <i class="fas fa-clipboard-list"></i> Đơn hàng của tôi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Home/Cart">
+                                <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                            </a>
+                        </li>
+                        <li class="nav-item mt-3">
+                            <a class="nav-link text-danger" href="#" id="sidebarLogout">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Main content -->
+            <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <footer class="border-top footer text-muted mt-4">
+        <div class="container">
+            &copy; 2023 - Terrarium Store - <a href="#">Privacy</a>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function() {
+            // Xử lý đăng xuất
+            function handleLogout() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('user');
+                localStorage.removeItem('role');
+                window.location.href = '/Home/Login';
+            }
+            
+            // Gán sự kiện cho các nút đăng xuất
+            $('#navLogout, #sidebarLogout').on('click', function(e) {
+                e.preventDefault();
+                handleLogout();
+            });
+            
+            // Hiển thị thông tin người dùng từ localStorage
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            $('#userFullName').text(user.fullName || 'Người dùng');
+            $('#userEmail').text(user.email || '');
+            
+            // Kiểm tra xem người dùng đã đăng nhập chưa
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/Home/Login';
+            }
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html> 

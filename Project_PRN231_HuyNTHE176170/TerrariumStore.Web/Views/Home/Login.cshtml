@@ -1,0 +1,217 @@
+﻿@model TerrariumStore.Web.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập - Terrarium Store";
+}
+
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header text-center bg-success text-white">
+                    <h1 class="py-3">
+                        <i class="fas fa-leaf me-2"></i> Terrarium Store
+                    </h1>
+                </div>
+                <div class="card-body p-4">
+                    <h4 class="text-center mb-4">Đăng nhập</h4>
+                    
+                    <form id="loginForm">
+                        <div class="form-floating mb-3">
+                            <input type="text" id="username" name="username" class="form-control" placeholder="Tên đăng nhập" required />
+                            <label for="username">Tên đăng nhập</label>
+                        </div>
+                        
+                        <div class="form-floating mb-3">
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Mật khẩu" required />
+                            <label for="password">Mật khẩu</label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">
+                                Ghi nhớ đăng nhập
+                            </label>
+                        </div>
+                        
+                        <div id="message" class="alert alert-danger" style="display: none;"></div>
+                        
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                            </button>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p>Chưa có tài khoản? <a href="javascript:void(0)" id="registerLink" class="text-decoration-none">Đăng ký ngay</a></p>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3 bg-light">
+                    <div class="small">
+                        <a href="javascript:void(0)" id="homeLink" class="text-decoration-none">
+                            <i class="fas fa-home me-1"></i>Quay lại trang chủ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Kiểm tra xem người dùng đã đăng nhập hay chưa
+            var token = localStorage.getItem("token");
+            if (token) {
+                // Nếu đã đăng nhập, lấy vai trò
+                var role = localStorage.getItem("role");
+                
+                // Điều hướng dựa trên vai trò
+                if (role === "Admin") {
+                    window.location.href = "/Admin/Dashboard";
+                } else {
+                    window.location.href = "/Home/Index";
+                }
+            }
+            
+            // Xử lý nút đăng ký
+            $("#registerLink").click(function() {
+                window.location.href = "/Home/Register";
+            });
+            
+            // Xử lý nút quay lại trang chủ
+            $("#homeLink").click(function(e) {
+                e.preventDefault();
+                // Thay đổi URL để tránh chuyển hướng lại trang login
+                window.location.replace("/Home/Index?skipAuth=true");
+            });
+            
+            $("#loginForm").on("submit", function (e) {
+                e.preventDefault();
+
+                var loginData = {
+                    username: $("#username").val(),
+                    password: $("#password").val()
+                };
+
+                // Hiển thị loading khi đang đăng nhập
+                $("button[type='submit']").html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang đăng nhập...');
+                $("button[type='submit']").prop("disabled", true);
+                
+                // Ẩn thông báo lỗi nếu có
+                $("#message").hide();
+
+                $.ajax({
+                    url: "https://localhost:7024/api/auth/login",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(loginData),
+                    success: function (response) {
+                        // Lưu token và thông tin người dùng
+                        localStorage.setItem("token", response.token);
+                        localStorage.setItem("userId", response.id);
+                        localStorage.setItem("role", response.role);
+                        localStorage.setItem("username", response.username);
+                        localStorage.setItem("user", JSON.stringify(response));
+                        
+                        // Lưu "remember me" nếu được chọn
+                        if ($("#rememberMe").is(":checked")) {
+                            // Thiết lập persistent storage cho "remember me"
+                            sessionStorage.setItem("rememberMe", "true");
+                            
+                            // Có thể thêm cookie hoặc cách lưu trữ khác để ghi nhớ đăng nhập
+                            // Ví dụ: Đặt cookie hết hạn sau 30 ngày
+                            var d = new Date();
+                            d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
+                            var expires = "expires=" + d.toUTCString();
+                            document.cookie = "remember_token=" + response.token + ";" + expires + ";path=/";
+                            document.cookie = "remember_username=" + response.username + ";" + expires + ";path=/";
+                        }
+
+                        // Điều hướng dựa trên role
+                        if (response.role === "Admin") {
+                            window.location.href = "/Admin/Dashboard";
+                        } else {
+                            window.location.href = "/Home/Index";
+                        }
+                    },
+                    error: function (xhr) {
+                        // Hiển thị thông báo lỗi
+                        $("#message").text(xhr.responseJSON?.message || "Đăng nhập thất bại. Vui lòng thử lại.").show();
+                        
+                        // Khôi phục nút đăng nhập
+                        $("button[type='submit']").html('<i class="fas fa-sign-in-alt me-2"></i>Đăng nhập');
+                        $("button[type='submit']").prop("disabled", false);
+                    }
+                });
+            });
+            
+            // Kiểm tra cookie để tự động đăng nhập nếu đã ghi nhớ
+            function getCookie(name) {
+                var nameEQ = name + "=";
+                var ca = document.cookie.split(';');
+                for(var i=0; i < ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
+            
+            // Kiểm tra nếu có cookie ghi nhớ đăng nhập
+            var rememberedToken = getCookie("remember_token");
+            var rememberedUsername = getCookie("remember_username");
+            
+            if (rememberedToken && rememberedUsername && !token) {
+                // Tự động điền thông tin đăng nhập và đánh dấu checkbox
+                $("#username").val(rememberedUsername);
+                $("#rememberMe").prop("checked", true);
+                // Có thể thêm tính năng tự động đăng nhập nếu cần
+            }
+        });
+    </script>
+}
+
+<style>
+    /* Màu nền nhẹ cho trang đăng nhập */
+    body {
+        background-color: #f8f9fa;
+        background-image: url('https://images.unsplash.com/photo-1585500261348-2b5ed758ca1c');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+    
+    /* Làm mờ nền */
+    .container {
+        position: relative;
+        z-index: 10;
+    }
+    
+    /* Thêm hiệu ứng hover cho nút */
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    /* Hiệu ứng khi focus vào input */
+    .form-control:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    
+    /* Style cho link đăng ký và quay lại */
+    #registerLink, #homeLink {
+        color: #28a745;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    #registerLink:hover, #homeLink:hover {
+        color: #218838;
+        text-decoration: underline !important;
+    }
+</style>

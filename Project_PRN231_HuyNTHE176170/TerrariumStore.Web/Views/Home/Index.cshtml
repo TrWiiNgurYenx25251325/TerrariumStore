@@ -1,0 +1,594 @@
+﻿@{
+    ViewData["Title"] = "Trang chủ - Terrarium Store";
+}
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="/Home/Index?skipAuth=true">
+            <i class="fas fa-leaf me-2"></i>Terrarium Store
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" 
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/Home/Index?skipAuth=true">
+                        <i class="fas fa-home me-1"></i>Trang chủ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Product?skipAuth=true">
+                        <i class="fas fa-store me-1"></i>Sản phẩm
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-th-list me-1"></i>Danh mục
+                    </a>
+                    <ul class="dropdown-menu" id="categoryDropdown" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="/Product?categoryId=0&skipAuth=true">Tất cả sản phẩm</a></li>
+                        <!-- Categories will be loaded dynamically -->
+                    </ul>
+                </li>
+                <li class="nav-item customer-only" style="display: none;">
+                    <a class="nav-link" href="/Profile/Orders" id="orderHistoryDropdownLink">
+                        <i class="fas fa-history me-1"></i>Đơn hàng của tôi
+                    </a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <div class="input-group me-2 search-group">
+                    <input class="form-control" type="search" id="searchInput" placeholder="Tìm kiếm..." aria-label="Search">
+                    <button class="btn btn-outline-light" type="button" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                
+                <a href="/Home/Cart" class="btn btn-outline-light me-2 customer-only" style="display: none;">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="badge bg-danger ms-1" id="cartCount">0</span>
+                </a>
+                
+                <!-- Hiển thị khi đã đăng nhập -->
+                <div class="dropdown user-authenticated" style="display: none;">
+                    <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" 
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user me-1"></i>
+                        <span id="usernameNav"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="/Profile/UserInfo"><i class="fas fa-id-card me-2"></i>Thông tin cá nhân</a></li>
+                        <li><a class="dropdown-item" href="/Profile/Orders"><i class="fas fa-clipboard-list me-2"></i>Đơn hàng của tôi</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/Home/Logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Hiển thị khi chưa đăng nhập -->
+                <div id="loginRegisterButtons" style="display: none;">
+                    <a href="/Home/Login" class="btn btn-outline-light me-2">
+                        <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập
+                    </a>
+                    <a href="/Home/Register" class="btn btn-success">
+                        <i class="fas fa-user-plus me-1"></i>Đăng ký
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="main-content mb-4">
+    <!-- Hero Section with Carousel -->
+    <div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="https://images.unsplash.com/photo-1545239705-1564e58b9e4a" class="d-block w-100" alt="Terrarium 1"
+                     style="max-height: 500px; object-fit: cover;">
+                <div class="carousel-caption">
+                    <h2>Chào mừng đến với Terrarium Store</h2>
+                    <p>Khám phá thế giới cây cảnh mini và trang trí không gian sống của bạn</p>
+                    <a href="/Product?skipAuth=true" class="btn btn-success">Mua sắm ngay</a>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="https://images.unsplash.com/photo-1463320898484-cdee8141c787" class="d-block w-100" alt="Terrarium 2" 
+                    style="max-height: 500px; object-fit: cover;">
+                <div class="carousel-caption">
+                    <h2>Bộ sưu tập mới nhất</h2>
+                    <p>Những sản phẩm terrarium độc đáo và sáng tạo</p>
+                    <a href="/Product?skipAuth=true" class="btn btn-success">Khám phá ngay</a>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="https://images.unsplash.com/photo-1545239705-1564e58b9e4a" class="d-block w-100" alt="Terrarium 3" 
+                    style="max-height: 500px; object-fit: cover;">
+                <div class="carousel-caption">
+                    <h2>Ưu đãi đặc biệt</h2>
+                    <p>Giảm giá lên đến 30% cho khách hàng mới</p>
+                    <a href="/Product?skipAuth=true" class="btn btn-success">Mua ngay</a>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
+<!-- Categories Section -->
+<section class="mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Danh mục sản phẩm</h2>
+        <div class="row" id="categoriesContainer">
+            <!-- Categories will be loaded dynamically -->
+            <div class="text-center">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products Section -->
+<section class="mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Sản phẩm nổi bật</h2>
+        <div class="row" id="featuredProductsContainer">
+            <!-- Featured products will be loaded dynamically -->
+            <div class="text-center">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- New Arrivals Section -->
+<section class="mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Sản phẩm mới</h2>
+        <div class="row" id="newProductsContainer">
+            <!-- New products will be loaded dynamically -->
+            <div class="text-center">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Promotion Banner -->
+<section class="mb-5">
+    <div class="container">
+        <div class="card bg-dark text-white">
+            <img src="https://images.unsplash.com/photo-1585500261348-2b5ed758ca1c" class="card-img" alt="Promo" style="max-height: 200px; object-fit: cover; filter: brightness(0.7);">
+            <div class="card-img-overlay d-flex flex-column justify-content-center text-center">
+                <h2 class="card-title">Ưu đãi đặc biệt</h2>
+                <p class="card-text">Giảm giá 20% cho tất cả sản phẩm khi mua từ 2 trở lên</p>
+                <a href="/Product?skipAuth=true" class="btn btn-success align-self-center">Xem thêm</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <h5><i class="fas fa-leaf me-2"></i>Terrarium Store</h5>
+                <p>Chuyên cung cấp các loại terrarium và phụ kiện chất lượng cao</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5>Liên hệ</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-map-marker-alt me-2"></i>123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</li>
+                    <li><i class="fas fa-phone me-2"></i>(028) 1234 5678</li>
+                    <li><i class="fas fa-envelope me-2"></i>contact@terrariumstore.com</li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5>Theo dõi chúng tôi</h5>
+                <div class="d-flex">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook fa-2x"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-2x"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-tiktok fa-2x"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-youtube fa-2x"></i></a>
+                </div>
+            </div>
+        </div>
+        <hr/>
+        <div class="text-center">
+            <p>&copy; 2023 Terrarium Store. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Kiểm tra nếu có tham số skipAuth
+            const urlParams = new URLSearchParams(window.location.search);
+            const skipAuth = urlParams.get('skipAuth');
+            
+            // Kiểm tra token và thông tin người dùng
+            var token = localStorage.getItem("token");
+            var role = localStorage.getItem("role");
+            var username = localStorage.getItem("username");
+            var userId = localStorage.getItem("userId");
+
+            if (!token && skipAuth !== "true") {
+                window.location.href = "/Home/Login";
+                return;
+            }
+
+            // Hiển thị thông tin người dùng nếu đã đăng nhập
+            if (token && username) {
+                $("#usernameNav").text(username);
+                // Hiển thị các menu chỉ dành cho người dùng đã đăng nhập
+                $(".user-authenticated").show();
+                // Hiển thị các phần chỉ dành cho khách hàng nếu role là Customer
+                if (role === "Customer") {
+                    $(".customer-only").show();
+                }
+            } else {
+                // Ẩn các menu chỉ dành cho người dùng đã đăng nhập
+                $(".user-authenticated").hide();
+                // Hiển thị nút đăng nhập/đăng ký
+                $("#loginRegisterButtons").show();
+            }
+
+            // Xử lý đăng xuất
+            $("a[href='/Home/Logout']").click(function(e) {
+                e.preventDefault();
+                // Xóa token và thông tin người dùng
+                localStorage.removeItem("token");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("role");
+                localStorage.removeItem("username");
+                localStorage.removeItem("rememberMe");
+                // Xóa cookies
+                document.cookie = "remember_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                document.cookie = "remember_username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                // Chuyển hướng về trang đăng nhập
+                window.location.href = "/Home/Login";
+            });
+
+            // Load danh mục sản phẩm
+            loadCategories();
+            
+            // Load sản phẩm nổi bật
+            loadFeaturedProducts();
+            
+            // Load sản phẩm mới
+            loadNewProducts();
+            
+            // Load số lượng sản phẩm trong giỏ hàng
+            loadCartCount();
+            
+            // Xử lý tìm kiếm
+            $("#searchBtn").click(function() {
+                var searchTerm = $("#searchInput").val();
+                if (searchTerm.trim() !== "") {
+                    window.location.href = "/Product?searchTerm=" + encodeURIComponent(searchTerm);
+                }
+            });
+            
+            $("#searchInput").keypress(function(e) {
+                if (e.which === 13) { // Enter key
+                    $("#searchBtn").click();
+                    e.preventDefault();
+                }
+            });
+            
+            // Xử lý click vào link thông tin cá nhân
+            $("#profileLink, #orderHistoryLink").click(function(e) {
+                e.preventDefault();
+                alert("Chức năng đang được phát triển!");
+            });
+            
+            // Đơn hàng của tôi không cần chặn nữa vì đã có trang
+            $("#orderHistoryDropdownLink").click(function(e) {
+                // Không cần chặn sự kiện mặc định vì link đã có href="/Profile/Orders"
+            });
+        });
+        
+        function loadCategories() {
+            $.ajax({
+                url: "https://localhost:7024/api/Category",
+                method: "GET",
+                headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+                success: function(categories) {
+                    // Kiểm tra xem có tham số skipAuth hay không
+                    const skipAuth = new URLSearchParams(window.location.search).get('skipAuth');
+                    const skipAuthParam = skipAuth === "true" ? "&skipAuth=true" : "";
+                    
+                    // Hiển thị danh mục trong dropdown menu
+                    var dropdownHtml = `<li><a class="dropdown-item" href="/Product?skipAuth=true">Tất cả sản phẩm</a></li>`;
+                    categories.forEach(function(category) {
+                        dropdownHtml += `<li><a class="dropdown-item" href="/Product?categoryId=${category.id}${skipAuthParam ? skipAuthParam : '&skipAuth=true'}">
+                            ${category.name}</a></li>`;
+                    });
+                    $("#categoryDropdown").html(dropdownHtml);
+                    
+                    // Hiển thị danh mục trong section
+                    var categoriesHtml = '';
+                    categories.forEach(function(category) {
+                        categoriesHtml += `
+                            <div class="col-md-4 col-sm-6 mb-4">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-leaf fa-3x text-success mb-3"></i>
+                                        <h5 class="card-title">${category.name}</h5>
+                                        <p class="card-text">${category.description || 'Khám phá các sản phẩm terrarium độc đáo'}</p>
+                                        <a href="/Product?categoryId=${category.id}${skipAuthParam ? skipAuthParam : '&skipAuth=true'}" class="btn btn-outline-success">Xem sản phẩm</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    $("#categoriesContainer").html(categoriesHtml);
+                },
+                error: function(xhr) {
+                    console.error("Error loading categories:", xhr);
+                    $("#categoriesContainer").html(`
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                Không thể tải danh mục sản phẩm. Vui lòng thử lại sau.
+                            </div>
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        function loadFeaturedProducts() {
+            $.ajax({
+                url: "https://localhost:7024/api/Product",
+                method: "GET",
+                headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+                success: function(products) {
+                    // Lấy 4 sản phẩm đầu tiên để hiển thị như sản phẩm nổi bật
+                    var featuredProducts = products.slice(0, 4);
+                    var featuredHtml = '';
+                    
+                    featuredProducts.forEach(function(product) {
+                        featuredHtml += `
+                            <div class="col-lg-3 col-md-6 mb-4">
+                                <div class="card h-100 product-card shadow-sm">
+                                    <div class="badge bg-danger position-absolute" style="top: 0.5rem; right: 0.5rem">Hot</div>
+                                    <img src="${product.imageUrl || 'https://via.placeholder.com/150'}" class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${product.name}</h5>
+                                        <p class="card-text text-truncate">${product.description || 'No description available'}</p>
+                                        <p class="card-text text-danger fw-bold">${formatCurrency(product.price)}</p>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between">
+                                        <button class="btn btn-outline-success btn-sm" onclick="viewProductDetails(${product.id})">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </button>
+                                        <button class="btn btn-success btn-sm" onclick="addToCart(${product.id})">
+                                            <i class="fas fa-cart-plus"></i> Thêm vào giỏ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    $("#featuredProductsContainer").html(featuredHtml);
+                },
+                error: function(xhr) {
+                    console.error("Error loading featured products:", xhr);
+                    $("#featuredProductsContainer").html(`
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                Không thể tải sản phẩm nổi bật. Vui lòng thử lại sau.
+                            </div>
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        function loadNewProducts() {
+            $.ajax({
+                url: "https://localhost:7024/api/Product?sortBy=id&ascending=false",
+                method: "GET",
+                headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+                success: function(products) {
+                    // Lấy 4 sản phẩm đầu tiên để hiển thị như sản phẩm mới
+                    var newProducts = products.slice(0, 4);
+                    var newProductsHtml = '';
+                    
+                    newProducts.forEach(function(product) {
+                        newProductsHtml += `
+                            <div class="col-lg-3 col-md-6 mb-4">
+                                <div class="card h-100 product-card shadow-sm">
+                                    <div class="badge bg-success position-absolute" style="top: 0.5rem; right: 0.5rem">New</div>
+                                    <img src="${product.imageUrl || 'https://via.placeholder.com/150'}" class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${product.name}</h5>
+                                        <p class="card-text text-truncate">${product.description || 'No description available'}</p>
+                                        <p class="card-text text-danger fw-bold">${formatCurrency(product.price)}</p>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between">
+                                        <button class="btn btn-outline-success btn-sm" onclick="viewProductDetails(${product.id})">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </button>
+                                        <button class="btn btn-success btn-sm" onclick="addToCart(${product.id})">
+                                            <i class="fas fa-cart-plus"></i> Thêm vào giỏ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    $("#newProductsContainer").html(newProductsHtml);
+                },
+                error: function(xhr) {
+                    console.error("Error loading new products:", xhr);
+                    $("#newProductsContainer").html(`
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                Không thể tải sản phẩm mới. Vui lòng thử lại sau.
+                            </div>
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        function loadCartCount() {
+            var userId = localStorage.getItem("userId");
+            var token = localStorage.getItem("token");
+            
+            if (!userId || !token) return;
+            
+            $.ajax({
+                url: `https://localhost:7024/api/Cart/${userId}`,
+                method: "GET",
+                headers: { "Authorization": `Bearer ${token}` },
+                success: function(cart) {
+                    var count = 0;
+                    if (cart && cart.cartItems) {
+                        count = cart.cartItems.length;
+                    }
+                    $("#cartCount").text(count);
+                },
+                error: function(xhr) {
+                    console.error("Error loading cart count:", xhr);
+                    $("#cartCount").text("0");
+                }
+            });
+        }
+        
+        function viewProductDetails(productId) {
+            // Thêm tham số skipAuth vào URL khi chuyển hướng đến trang chi tiết sản phẩm
+            const skipAuth = new URLSearchParams(window.location.search).get('skipAuth');
+            const skipAuthParam = skipAuth === "true" ? "&skipAuth=true" : "";
+            window.location.href = `/Product/Details?id=${productId}${skipAuthParam}`;
+        }
+        
+        function addToCart(productId) {
+            var userId = localStorage.getItem("userId");
+            var token = localStorage.getItem("token");
+            
+            if (!userId || !token) {
+                alert("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!");
+                return;
+            }
+            
+            $.ajax({
+                url: `https://localhost:7024/api/Cart/add`,
+                method: "POST",
+                headers: { 
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                data: JSON.stringify({
+                    userId: parseInt(userId),
+                    productId: productId,
+                    quantity: 1
+                }),
+                success: function(response) {
+                    alert("Đã thêm sản phẩm vào giỏ hàng!");
+                    loadCartCount();
+                },
+                error: function(xhr) {
+                    console.error("Error adding to cart:", xhr);
+                    alert("Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại sau!");
+                }
+            });
+        }
+        
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+    </script>
+}
+
+<style>
+    /* Style cho navbar */
+    .navbar {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 0.7rem 1rem;
+    }
+
+    .navbar-brand {
+        font-weight: 600;
+        font-size: 1.4rem;
+    }
+
+    .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+
+    .nav-link:hover {
+        background-color: rgba(255,255,255,0.1);
+        border-radius: 4px;
+    }
+    
+    /* Style cho carousel */
+    .carousel-inner {
+        border-radius: 0 0 10px 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .carousel-caption {
+        background-color: rgba(0,0,0,0.5);
+        border-radius: 10px;
+        padding: 20px;
+        bottom: 2rem;
+    }
+    
+    /* Style cho search box */
+    .search-group {
+        max-width: 250px;
+    }
+    
+    /* Responsive adjustments using standard media query */
+    @@media (max-width: 991.98px) {
+        .search-group {
+            margin-bottom: 10px;
+            max-width: 100%;
+        }
+        
+        .navbar-nav {
+            margin-bottom: 10px;
+        }
+        
+        #loginRegisterButtons {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        #loginRegisterButtons .btn {
+            margin-bottom: 5px;
+            width: 100%;
+        }
+    }
+</style>

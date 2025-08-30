@@ -1,0 +1,723 @@
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+}
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="/Home/Index">
+            <i class="fas fa-leaf me-2"></i>Terrarium Store
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" 
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="/Home/Index">
+                        <i class="fas fa-home me-1"></i>Trang chủ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/Product">
+                        <i class="fas fa-store me-1"></i>Sản phẩm
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-th-list me-1"></i>Danh mục
+                    </a>
+                    <ul class="dropdown-menu" id="categoryDropdown" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="/Product?categoryId=0">Tất cả sản phẩm</a></li>
+                        <!-- Categories will be loaded dynamically -->
+                    </ul>
+                </li>
+                <li class="nav-item customer-only" style="display: none;">
+                    <a class="nav-link" href="/Profile/Orders" id="orderHistoryDropdownLink">
+                        <i class="fas fa-history me-1"></i>Đơn hàng của tôi
+                    </a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <form class="d-flex me-2">
+                    <input class="form-control me-2" type="search" id="searchInput" placeholder="Tìm kiếm..." aria-label="Search">
+                    <button class="btn btn-outline-light" type="button" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+                <a href="/Home/Cart" class="btn btn-outline-light me-2">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="badge bg-danger ms-1" id="cartCount">0</span>
+                </a>
+                
+                <!-- Hiển thị khi đã đăng nhập -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" 
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user me-1"></i>
+                        <span id="usernameNav"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#" id="profileLink"><i class="fas fa-id-card me-2"></i>Thông tin cá nhân</a></li>
+                        <li><a class="dropdown-item" href="#" id="orderHistoryDropdownLink"><i class="fas fa-clipboard-list me-2"></i>Đơn hàng của tôi</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/Home/Logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Hiển thị khi chưa đăng nhập -->
+                <div id="loginRegisterButtons" style="display: none;">
+                    <a href="/Home/Login" class="btn btn-outline-light me-2">
+                        <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập
+                    </a>
+                    <a href="/Home/Register" class="btn btn-success">
+                        <i class="fas fa-user-plus me-1"></i>Đăng ký
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Breadcrumb -->
+<div class="container mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Home/Index" class="text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="/Product" class="text-decoration-none">Sản phẩm</a></li>
+            <li class="breadcrumb-item active" aria-current="page" id="productBreadcrumb">Chi tiết sản phẩm</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Loading Spinner -->
+<div class="container mb-5" id="loadingSpinner">
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Product Detail Section -->
+<div class="container mb-5" id="productDetail" style="display: none;">
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <img id="productImage" src="" alt="Product Image" class="img-fluid rounded" style="width: 100%; height: 400px; object-fit: cover;">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Information -->
+        <div class="col-md-6">
+            <h2 id="productName" class="mb-3"></h2>
+            <div class="d-flex align-items-center mb-3">
+                <span class="badge bg-success me-2">Còn hàng</span>
+                <span class="text-muted" id="categoryName"></span>
+            </div>
+            <h3 class="text-danger fw-bold mb-3" id="productPrice"></h3>
+            <div id="productDescription" class="mb-4 product-description"></div>
+            
+            <!-- Stock Information -->
+            <div class="d-flex align-items-center mb-4">
+                <span class="me-3">Số lượng còn lại:</span>
+                <span id="stockQuantity" class="badge bg-info"></span>
+            </div>
+            
+            <!-- Quantity Selector -->
+            <div class="d-flex align-items-center mb-4">
+                <span class="me-3">Số lượng:</span>
+                <div class="input-group" style="width: 150px;">
+                    <button class="btn btn-outline-secondary" type="button" id="decreaseQuantity">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="10">
+                    <button class="btn btn-outline-secondary" type="button" id="increaseQuantity">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Add to Cart Button -->
+            <div class="d-grid gap-2 mb-4">
+                <button id="addToCartBtn" class="btn btn-success btn-lg">
+                    <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                </button>
+            </div>
+            
+            <!-- Product Details Accordion -->
+            <div class="accordion" id="productAccordion">
+                
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            Hướng dẫn chăm sóc
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#productAccordion">
+                        <div class="accordion-body">
+                            <ul>
+                                <li>Đặt sản phẩm ở nơi có ánh sáng gián tiếp.</li>
+                                <li>Tưới nước một lượng vừa phải mỗi 1-2 tuần.</li>
+                                <li>Tránh đặt dưới ánh nắng trực tiếp hoặc nơi quá lạnh.</li>
+                                <li>Kiểm tra độ ẩm của đất trước khi tưới nước.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            Chính sách đổi trả
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#productAccordion">
+                        <div class="accordion-body">
+                            <p>Sản phẩm được đổi trả trong vòng 7 ngày nếu phát hiện lỗi từ nhà sản xuất.</p>
+                            <p>Vui lòng liên hệ với chúng tôi qua hotline hoặc email để được hướng dẫn đổi trả.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Related Products Section -->
+<div class="container mb-5">
+    <h3 class="mb-4">Sản phẩm tương tự</h3>
+    <div class="row" id="relatedProductsContainer">
+        <!-- Related products will be loaded dynamically -->
+        <div class="text-center">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Alert -->
+<div class="container mb-5" id="errorAlert" style="display: none;">
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Có lỗi xảy ra!</h4>
+        <p id="errorMessage">Không thể tải thông tin sản phẩm. Vui lòng thử lại sau.</p>
+        <hr>
+        <p class="mb-0">
+            <a href="/Product" class="alert-link">Quay lại danh sách sản phẩm</a> hoặc 
+            <a href="/" class="alert-link">Quay lại trang chủ</a>
+        </p>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <h5><i class="fas fa-leaf me-2"></i>Terrarium Store</h5>
+                <p>Chuyên cung cấp các loại terrarium và phụ kiện chất lượng cao</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5>Liên hệ</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-map-marker-alt me-2"></i>123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</li>
+                    <li><i class="fas fa-phone me-2"></i>(028) 1234 5678</li>
+                    <li><i class="fas fa-envelope me-2"></i>contact@terrariumstore.com</li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h5>Theo dõi chúng tôi</h5>
+                <div class="d-flex">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook fa-2x"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-2x"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-tiktok fa-2x"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-youtube fa-2x"></i></a>
+                </div>
+            </div>
+        </div>
+        <hr/>
+        <div class="text-center">
+            <p>&copy; 2023 Terrarium Store. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Kiểm tra tham số id từ URL
+            var urlParams = new URLSearchParams(window.location.search);
+            var productId = urlParams.get('id');
+            var skipAuth = urlParams.get('skipAuth');
+            
+            // Lấy thông tin token và user từ localStorage
+            var token = localStorage.getItem("token");
+            var userId = localStorage.getItem("userId");
+            var username = localStorage.getItem("username");
+            var role = localStorage.getItem("role");
+            
+            // Cập nhật URL với tham số skipAuth nếu cần
+            if (skipAuth === "true") {
+                // Cập nhật tất cả các liên kết trên trang
+                $("a").each(function() {
+                    var href = $(this).attr("href");
+                    if(href && href.indexOf("/Home/Index") === 0 && href.indexOf("skipAuth") === -1) {
+                        $(this).attr("href", href + (href.indexOf("?") > -1 ? "&" : "?") + "skipAuth=true");
+                    } else if(href && href.indexOf("/Product") === 0 && href.indexOf("skipAuth") === -1) {
+                        $(this).attr("href", href + (href.indexOf("?") > -1 ? "&" : "?") + "skipAuth=true");
+                    }
+                });
+            }
+            
+            // Kiểm tra đăng nhập nếu không có skipAuth
+            if (!token && skipAuth !== "true") {
+                window.location.href = "/Home/Login";
+                return;
+            }
+
+            // Hiển thị UI dựa trên trạng thái đăng nhập
+            if (token && username) {
+                // Hiển thị thông tin người dùng nếu đã đăng nhập
+                $("#usernameNav").text(username);
+                $(".dropdown").show();
+                $("#loginRegisterButtons").hide();
+                
+                // Kiểm tra vai trò
+                if (role !== "Customer" && skipAuth !== "true") {
+                    window.location.href = "/Home/Login";
+                    return;
+                }
+            } else {
+                // Ẩn phần người dùng đã đăng nhập và hiển thị nút đăng nhập/đăng ký
+                $(".dropdown").hide();
+                $(".customer-only").hide();
+                
+                // Hiển thị nút đăng nhập/đăng ký
+                $("#loginRegisterButtons").show();
+            }
+            
+            if (!productId) {
+                $("#loadingSpinner").hide();
+                $("#errorAlert").show();
+                $("#errorMessage").text("Không tìm thấy ID sản phẩm.");
+                return;
+            }
+            
+            // Load danh mục cho dropdown menu
+            loadCategories();
+            
+            // Load chi tiết sản phẩm
+            loadProductDetails(productId);
+            
+            // Load sản phẩm liên quan
+            loadRelatedProducts(productId);
+            
+            // Load số lượng sản phẩm trong giỏ hàng nếu đã đăng nhập
+            if (token && userId) {
+                loadCartCount();
+            } else {
+                $("#cartCount").text("0");
+            }
+            
+            // Xử lý nút tăng/giảm số lượng
+            $("#increaseQuantity").click(function() {
+                var currentQty = parseInt($("#quantity").val());
+                var maxQty = parseInt($("#quantity").attr("max"));
+                if (currentQty < maxQty) {
+                    $("#quantity").val(currentQty + 1);
+                }
+            });
+            
+            $("#decreaseQuantity").click(function() {
+                var currentQty = parseInt($("#quantity").val());
+                if (currentQty > 1) {
+                    $("#quantity").val(currentQty - 1);
+                }
+            });
+            
+            // Xử lý khi thay đổi số lượng trực tiếp
+            $("#quantity").change(function() {
+                var currentQty = parseInt($(this).val());
+                var maxQty = parseInt($(this).attr("max"));
+                
+                if (isNaN(currentQty) || currentQty < 1) {
+                    $(this).val(1);
+                } else if (currentQty > maxQty) {
+                    $(this).val(maxQty);
+                }
+            });
+            
+            // Xử lý nút thêm vào giỏ hàng
+            $("#addToCartBtn").click(function() {
+                // Kiểm tra đăng nhập trước khi thêm vào giỏ hàng
+                if (!token) {
+                    Swal.fire({
+                        title: 'Thông báo',
+                        text: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!',
+                        icon: 'warning',
+                        confirmButtonText: 'Đăng nhập ngay',
+                        showCancelButton: true,
+                        cancelButtonText: 'Để sau'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            var currentUrl = window.location.href;
+                            window.location.href = "/Home/Login?returnUrl=" + encodeURIComponent(currentUrl);
+                        }
+                    });
+                    return;
+                }
+                
+                addToCart(productId, parseInt($("#quantity").val()));
+            });
+            
+            // Xử lý tìm kiếm
+            $("#searchBtn").click(function() {
+                var searchTerm = $("#searchInput").val();
+                if (searchTerm.trim() !== "") {
+                    var skipAuthParam = skipAuth === "true" ? "&skipAuth=true" : "";
+                    window.location.href = "/Product?searchTerm=" + encodeURIComponent(searchTerm) + skipAuthParam;
+                }
+            });
+            
+            $("#searchInput").keypress(function(e) {
+                if (e.which === 13) { // Enter key
+                    $("#searchBtn").click();
+                    e.preventDefault();
+                }
+            });
+            
+            // Xử lý click vào link thông tin cá nhân
+            $("#profileLink, #orderHistoryLink").click(function(e) {
+                e.preventDefault();
+                alert("Chức năng đang được phát triển!");
+            });
+            
+            // Đơn hàng của tôi không cần chặn nữa vì đã có trang
+            $("#orderHistoryDropdownLink").click(function(e) {
+                // Không cần chặn sự kiện mặc định vì link đã có href="/Profile/Orders"
+            });
+        });
+        
+        function loadCategories() {
+            $.ajax({
+                url: "https://localhost:7024/api/Category",
+                method: "GET",
+                headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+                success: function(categories) {
+                    // Hiển thị danh mục trong dropdown menu
+                    var dropdownHtml = '<li><a class="dropdown-item" href="/Product">Tất cả sản phẩm</a></li>';
+                    categories.forEach(function(category) {
+                        dropdownHtml += `<li><a class="dropdown-item" href="/Product?categoryId=${category.id}">${category.name}</a></li>`;
+                    });
+                    $("#categoryDropdown").html(dropdownHtml);
+                },
+                error: function(xhr) {
+                    console.error("Error loading categories:", xhr);
+                }
+            });
+        }
+        
+        function loadProductDetails(productId) {
+            $.ajax({
+                url: `https://localhost:7024/api/Product/${productId}`,
+                method: "GET",
+                headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+                success: function(product) {
+                    // Cập nhật thông tin sản phẩm
+                    $("#productName").text(product.name);
+                    $("#productBreadcrumb").text(product.name);
+                    $("#productPrice").text(formatCurrency(product.price));
+                    
+                    // Xử lý định dạng mô tả sản phẩm
+                    var formattedDescription = product.description || "Không có mô tả chi tiết cho sản phẩm này.";
+                    formattedDescription = formatDescription(formattedDescription);
+                    $("#productDescription").html(formattedDescription);
+                    
+                    // Xử lý định dạng thông tin chi tiết
+                    var formattedDetailedInfo = product.description || "Không có thông tin chi tiết cho sản phẩm này.";
+                    formattedDetailedInfo = formatDescription(formattedDetailedInfo);
+                    $("#productDetailedInfo").html(formattedDetailedInfo);
+                    
+                    $("#stockQuantity").text(product.stockQuantity);
+                    
+                    // Cập nhật hình ảnh sản phẩm
+                    if (product.imageUrl) {
+                        $("#productImage").attr("src", product.imageUrl);
+                    } else {
+                        $("#productImage").attr("src", "https://via.placeholder.com/400?text=No+Image");
+                    }
+                    
+                    // Cập nhật thông tin danh mục
+                    if (product.category) {
+                        $("#categoryName").text(product.category.name);
+                    } else {
+                        $("#categoryName").text("Không phân loại");
+                    }
+                    
+                    // Cập nhật giới hạn số lượng
+                    $("#quantity").attr("max", product.stockQuantity);
+                    
+                    // Hiển thị trạng thái kho hàng
+                    if (product.stockQuantity <= 0) {
+                        $(".badge.bg-success").removeClass("bg-success").addClass("bg-danger").text("Hết hàng");
+                        $("#addToCartBtn").addClass("disabled").text("Hết hàng");
+                    } else if (product.stockQuantity <= 5) {
+                        $(".badge.bg-success").removeClass("bg-success").addClass("bg-warning text-dark").text("Sắp hết hàng");
+                    }
+                    
+                    // Hiện thông tin sản phẩm, ẩn loading
+                    $("#loadingSpinner").hide();
+                    $("#productDetail").show();
+                    
+                    // Cập nhật title của trang
+                    document.title = `${product.name} - Terrarium Store`;
+                },
+                error: function(xhr) {
+                    console.error("Error loading product details:", xhr);
+                    $("#loadingSpinner").hide();
+                    $("#errorAlert").show();
+                }
+            });
+        }
+        
+        function loadRelatedProducts(currentProductId) {
+            $.ajax({
+                url: "https://localhost:7024/api/Product",
+                method: "GET",
+                headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+                success: function(products) {
+                    // Lọc ra 4 sản phẩm ngẫu nhiên khác sản phẩm hiện tại
+                    var filteredProducts = products.filter(p => p.id != currentProductId);
+                    // Lấy ngẫu nhiên 4 sản phẩm
+                    var shuffled = filteredProducts.sort(() => 0.5 - Math.random());
+                    var relatedProducts = shuffled.slice(0, 4);
+                    
+                    if (relatedProducts.length === 0) {
+                        $("#relatedProductsContainer").html("<p>Không có sản phẩm tương tự.</p>");
+                        return;
+                    }
+                    
+                    // Lấy tham số skipAuth từ URL hiện tại
+                    const skipAuth = new URLSearchParams(window.location.search).get('skipAuth');
+                    const skipAuthParam = skipAuth === "true" ? "&skipAuth=true" : "";
+                    
+                    var relatedHtml = '';
+                    relatedProducts.forEach(function(product) {
+                        relatedHtml += `
+                            <div class="col-lg-3 col-md-6 mb-4">
+                                <div class="card h-100 product-card shadow-sm">
+                                    <img src="${product.imageUrl || 'https://via.placeholder.com/150'}" class="card-img-top" alt="${product.name}" style="height: 200px; object-fit: cover;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${product.name}</h5>
+                                        <p class="card-text text-truncate">${product.description || 'No description available'}</p>
+                                        <p class="card-text text-danger fw-bold">${formatCurrency(product.price)}</p>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between">
+                                        <a href="/Product/Details?id=${product.id}${skipAuthParam}" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </a>
+                                        <button class="btn btn-success btn-sm" onclick="addToCart(${product.id}, 1)">
+                                            <i class="fas fa-cart-plus"></i> Thêm vào giỏ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    $("#relatedProductsContainer").html(relatedHtml);
+                },
+                error: function(xhr) {
+                    console.error("Error loading related products:", xhr);
+                    $("#relatedProductsContainer").html("<p>Không thể tải sản phẩm tương tự.</p>");
+                }
+            });
+        }
+        
+        function loadCartCount() {
+            var userId = localStorage.getItem("userId");
+            var token = localStorage.getItem("token");
+            
+            if (!userId || !token) return;
+            
+            $.ajax({
+                url: `https://localhost:7024/api/Cart/${userId}`,
+                method: "GET",
+                headers: { "Authorization": `Bearer ${token}` },
+                success: function(cart) {
+                    var count = 0;
+                    if (cart && cart.cartItems) {
+                        count = cart.cartItems.length;
+                    }
+                    $("#cartCount").text(count);
+                },
+                error: function(xhr) {
+                    console.error("Error loading cart count:", xhr);
+                    $("#cartCount").text("0");
+                }
+            });
+        }
+        
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+        
+        function addToCart(productId, quantity) {
+            var userId = localStorage.getItem("userId");
+            var token = localStorage.getItem("token");
+            
+            if (!userId || !token) {
+                Swal.fire({
+                    title: 'Thông báo',
+                    text: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!',
+                    icon: 'warning',
+                    confirmButtonText: 'Đăng nhập ngay',
+                    showCancelButton: true,
+                    cancelButtonText: 'Để sau'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var currentUrl = window.location.href;
+                        window.location.href = "/Home/Login?returnUrl=" + encodeURIComponent(currentUrl);
+                    }
+                });
+                return;
+            }
+            
+            $.ajax({
+                url: `https://localhost:7024/api/Cart/add`,
+                method: "POST",
+                headers: { 
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                data: JSON.stringify({
+                    userId: parseInt(userId),
+                    productId: parseInt(productId),
+                    quantity: quantity
+                }),
+                success: function(response) {
+                    // Hiển thị thông báo thành công
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: 'Đã thêm sản phẩm vào giỏ hàng',
+                        icon: 'success',
+                        confirmButtonText: 'Đóng',
+                        confirmButtonColor: '#28a745'
+                    });
+                    
+                    // Cập nhật số lượng giỏ hàng
+                    loadCartCount();
+                },
+                error: function(xhr) {
+                    console.error("Error adding to cart:", xhr);
+                    
+                    // Hiển thị thông báo lỗi
+                    Swal.fire({
+                        title: 'Lỗi!',
+                        text: 'Không thể thêm sản phẩm vào giỏ hàng',
+                        icon: 'error',
+                        confirmButtonText: 'Đóng',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            });
+        }
+        
+        // Hàm định dạng mô tả sản phẩm
+        function formatDescription(text) {
+            if (!text) return "";
+            
+            // Tách các đoạn theo dấu chấm và tạo đoạn văn mới
+            var sentences = text.split('. ');
+            var paragraphs = [];
+            var currentParagraph = "";
+            
+            sentences.forEach(function(sentence, index) {
+                if (sentence.trim() === "") return;
+                
+                // Thêm dấu chấm lại vào cuối câu trừ câu cuối cùng
+                var formattedSentence = sentence + (index < sentences.length - 1 ? '.' : '');
+                
+                // Nếu đoạn hiện tại đủ dài, tạo đoạn mới
+                if (currentParagraph.length > 150) {
+                    paragraphs.push(currentParagraph);
+                    currentParagraph = formattedSentence;
+                } else {
+                    // Nếu đoạn hiện tại trống, bắt đầu với câu hiện tại
+                    if (currentParagraph === "") {
+                        currentParagraph = formattedSentence;
+                    } else {
+                        // Nếu không, thêm câu vào đoạn hiện tại
+                        currentParagraph += ' ' + formattedSentence;
+                    }
+                }
+            });
+            
+            // Thêm đoạn cuối cùng vào mảng nếu còn
+            if (currentParagraph !== "") {
+                paragraphs.push(currentParagraph);
+            }
+            
+            // Gộp các đoạn lại với thẻ p
+            return paragraphs.map(p => `<p>${p}</p>`).join('');
+        }
+    </script>
+    
+    <!-- SweetAlert2 for nice alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+}
+
+<style>
+    /* Style cho navbar */
+    .navbar {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 0.7rem 1rem;
+    }
+
+    .navbar-brand {
+        font-weight: 600;
+        font-size: 1.4rem;
+    }
+
+    .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+
+    .nav-link:hover {
+        background-color: rgba(255,255,255,0.1);
+        border-radius: 4px;
+    }
+    
+    /* Định dạng mô tả sản phẩm */
+    .product-description, .product-detailed-info {
+        line-height: 1.8;
+        text-align: justify;
+    }
+    
+    .product-description p, .product-detailed-info p {
+        margin-bottom: 1rem;
+    }
+    
+    #productDetailedInfo {
+        white-space: pre-line;
+    }
+    
+    /* Định dạng accordion */
+    .accordion-body {
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 0 0 0.25rem 0.25rem;
+    }
+    
+    .accordion-button:not(.collapsed) {
+        background-color: #e7f5ee;
+        color: #198754;
+    }
+</style>
